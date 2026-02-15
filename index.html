@@ -381,5 +381,100 @@
     };
     run().catch(handleError);
   </script>
+
+  <!-- 手機虛擬按鍵 HUD：→ / Space / Z -->
+  <div id="mobile-hud" aria-hidden="true">
+    <button id="btn-right" class="hud-btn">→</button>
+    <button id="btn-eat" class="hud-btn">␣</button>
+    <button id="btn-z" class="hud-btn hud-btn-z">Z</button>
+  </div>
+
+  <style>
+    /* HUD 樣式：固定在底部，不擋太多畫面 */
+    #mobile-hud{
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      padding: 14px 16px 18px;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+      pointer-events: none;
+      z-index: 9999;
+    }
+    .hud-btn{
+      pointer-events: auto;
+      width: 72px; height: 72px;
+      border-radius: 18px;
+      border: 0;
+      font-size: 28px;
+      background: rgba(0,0,0,0.35);
+      color: white;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      touch-action: none;
+      user-select: none;
+    }
+    .hud-btn:active{ transform: scale(0.98); }
+    .hud-btn-z{
+      width: 56px; height: 56px;
+      font-size: 20px;
+      opacity: 0.75;
+      margin-left: auto;
+    }
+    /* 桌面端不顯示 HUD */
+    @media (hover: hover) and (pointer: fine){
+      #mobile-hud{ display:none; }
+    }
+  </style>
+
+  <script>
+    (function(){
+      function fireKey(type, key, code){
+        var e = new KeyboardEvent(type, {
+          key: key,
+          code: code,
+          bubbles: true,
+          cancelable: true
+        });
+        document.dispatchEvent(e);
+      }
+      function bindHold(btn, key, code){
+        var holding = false;
+        function down(ev){
+          ev.preventDefault();
+          if(holding) return;
+          holding = true;
+          window.focus();
+          fireKey("keydown", key, code);
+        }
+        function up(ev){
+          ev.preventDefault();
+          if(!holding) return;
+          holding = false;
+          fireKey("keyup", key, code);
+        }
+        btn.addEventListener("pointerdown", down);
+        btn.addEventListener("pointerup", up);
+        btn.addEventListener("pointercancel", up);
+        btn.addEventListener("pointerleave", up);
+      }
+      function bindTap(btn, key, code){
+        function tap(ev){
+          ev.preventDefault();
+          window.focus();
+          fireKey("keydown", key, code);
+          setTimeout(function(){ fireKey("keyup", key, code); }, 30);
+        }
+        btn.addEventListener("pointerdown", tap);
+      }
+      var btnRight = document.getElementById("btn-right");
+      var btnEat = document.getElementById("btn-eat");
+      var btnZ = document.getElementById("btn-z");
+      if(btnRight) bindHold(btnRight, "ArrowRight", "ArrowRight");
+      if(btnEat) bindTap(btnEat, " ", "Space");
+      if(btnZ) bindTap(btnZ, "z", "KeyZ");
+    })();
+  </script>
 </body>
 </html>
